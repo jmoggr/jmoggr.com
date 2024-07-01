@@ -22,6 +22,7 @@
               pkgs.git
               pkgs.nodePackages.pnpm
               pkgs.nodejs_22
+              pkgs.wget
             ];
 
             shellHook = ''
