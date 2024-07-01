@@ -31,10 +31,15 @@ func run(ctx context.Context, w io.Writer) error {
 	<-time.After(1 * time.Second)
 
 	// Command to run wget
-	cmd := exec.Command("wget", "--mirror", "--convert-links", "--adjust-extension", "--page-requisites", "--no-parent", "--no-host-directories", "-P", "public", "http://localhost:8080")
+	cmd := exec.Command("wget", "--mirror", "--adjust-extension", "--page-requisites", "--no-parent", "--no-host-directories", "-P", "public", "http://localhost:8080")
 	if err := cmd.Run(); err != nil {
 		logger.Printf("wget failed: %v", err)
 		return err
+	}
+
+	err := os.Remove("public/robots.txt.html")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	// Signal to stop the server

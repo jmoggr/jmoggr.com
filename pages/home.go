@@ -9,7 +9,7 @@ import (
 
 func Home(page *PageProps, pages []PageProps) g.Node {
 	return Div(
-		Headline("Home 3"),
+		Headline("Home"),
 
 		SubHeadline("All routes: "),
 		Ul(
