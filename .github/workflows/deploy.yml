@@ -20,6 +20,7 @@ jobs:
 
     - name: Build and Run Go Program
       run: |
+        mkdir -p public
         go run cmd/build/main.go
 
     - name: Deploy to GitHub Pages
