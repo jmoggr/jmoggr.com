@@ -1,4 +1,4 @@
-name: Build and Deploy Website
+name: deploy 
 
 on:
   push:
@@ -16,14 +16,14 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: '1.21.10' # Use the Go version that matches your requirement
+        go-version: '1.21.10'
 
-    - name: Build and Run Go Program
+    - name: Build static website
       run: |
         mkdir -p public
         go run cmd/build/main.go
 
-    - name: Deploy to GitHub Pages
+    - name: Push to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
