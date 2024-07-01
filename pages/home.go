@@ -11,7 +11,7 @@ func Home(page *PageProps, pages []PageProps) g.Node {
 	return Div(
 		Headline("Home"),
 
-		SubHeadline("All routes:"),
+		SubHeadline("All routes: "),
 		Ul(
 			g.Map(pages, func(i PageProps) g.Node {
 				return Li(g.Text(i.Path))
