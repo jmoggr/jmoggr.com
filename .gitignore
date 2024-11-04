@@ -1,0 +1,5 @@
+build
+.direnv
+.go
+node_modules
+static/styles.css

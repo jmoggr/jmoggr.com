@@ -1,0 +1,7 @@
+{
+  "files.exclude": {
+    ".go": true,
+    "node_modules": true,
+    ".direnv": true,
+  },
+}
