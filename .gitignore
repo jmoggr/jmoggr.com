@@ -1,4 +1,4 @@
-build
+./build
 .direnv
 .go
 node_modules
