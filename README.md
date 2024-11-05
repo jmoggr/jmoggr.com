@@ -19,15 +19,15 @@ configure pages in github repo settings
 
 
 
-#### Errors
+### Errors
 
-##### `run function failed: exit status 8`
+#### `run function failed: exit status 8`
 
 ![run function failed: exit status 8](static/missing-styles-error.png)
 
 The error occurs because `static/styles.css` is not present when `wget` is downloading the site. This is most likely because `tailwind` was not run or failed to generate the file.
 
-##### `permissions to [repo] denied to github-actions[bot].`
+#### `permissions to [repo] denied to github-actions[bot].`
 
 ![permissions to [repo] denied to github-actions[bot].](static/push-gh-pages-permission-denied-error.png)
 
