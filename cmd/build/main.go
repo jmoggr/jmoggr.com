@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -22,6 +23,19 @@ func run(ctx context.Context, w io.Writer) error {
 	logger := log.New(w, "http: ", log.LstdFlags)
 	config := &server.Config{Host: "localhost", Port: "8080"}
 
+	err := os.RemoveAll(buildDir)
+	if err != nil {
+		// Handle the error if something goes wrong
+		fmt.Println("Error deleting directory:", err)
+		return err
+	}
+
+	cmd := exec.Command("tailwind", "--output", "static/styles.css")
+	if err := cmd.Run(); err != nil {
+		logger.Printf("wget failed: %v", err)
+		return err
+	}
+
 	// Start the server in a goroutine
 	go func() {
 		if err := server.StartServer(ctx, logger, config); err != nil {
@@ -33,13 +47,13 @@ func run(ctx context.Context, w io.Writer) error {
 	<-time.After(1 * time.Second)
 
 	// Command to run wget
-	cmd := exec.Command("wget", "--mirror", "--adjust-extension", "--page-requisites", "--no-parent", "--no-host-directories", "-P", buildDir, "http://localhost:8080")
+	cmd = exec.Command("wget", "--mirror", "--adjust-extension", "--page-requisites", "--no-parent", "--no-host-directories", "-P", buildDir, "http://localhost:8080")
 	if err := cmd.Run(); err != nil {
 		logger.Printf("wget failed: %v", err)
 		return err
 	}
 
-	err := os.Remove(buildDir + "/robots.txt.html")
+	err = os.Remove(buildDir + "/robots.txt.html")
 	if err != nil {
 		log.Fatal(err)
 	}
