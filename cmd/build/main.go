@@ -30,7 +30,7 @@ func run(ctx context.Context, w io.Writer) error {
 		return err
 	}
 
-	cmd := exec.Command("tailwind", "--output", "static/styles.css")
+	cmd := exec.Command("node_modules/.bin/tailwind", "--output", "static/styles.css")
 	if err := cmd.Run(); err != nil {
 		logger.Printf("wget failed: %v", err)
 		return err
