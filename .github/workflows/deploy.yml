@@ -9,6 +9,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Grants write permission to the GITHUB_TOKEN
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
