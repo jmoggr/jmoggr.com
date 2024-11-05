@@ -26,10 +26,6 @@ jobs:
       with:
         go-version: '1.22.4'
 
-    - name: List files for debugging
-      run: |
-        ls -R
-
     - name: Build static website
       run: |
         go run cmd/build/main.go
