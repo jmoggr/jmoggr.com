@@ -12,3 +12,8 @@ This basically means that I have inflicted another "I'll just build it myself" o
 Previous attempts at this have involved various ways of transforming blobs of text until it looked like a website. This has involved bash, C Preprocessor, Make, python, asciidoc, markdown... it always ended up being a ball of spagetti that still fell annoyingly far outside of the "traditional" web development workflow.
 
 This time I was determined to have my cake and eat it.
+
+
+
+first push, action fails.
+create empyt commit and push again, fails with same error.
