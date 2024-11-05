@@ -23,7 +23,7 @@ configure pages in github repo settings
 
 ##### `run function failed: exit status 8`
 
-![run function failed: exit status 8](static/missing-styles-error.png.png)
+![run function failed: exit status 8](static/missing-styles-error.png)
 
 The error occurs because `static/styles.css` is not present when `wget` is downloading the site. This is most likely because `tailwind` was not run or failed to generate the file.
 
