@@ -1,0 +1,12 @@
+{
+  "name": "game-networking-part-1-slides",
+  "private": true,
+  "scripts": {
+    "build": "marp slides.md -o dist/index.html",
+    "watch": "marp slides.md -o dist/index.html --watch",
+    "preview": "marp slides.md --preview"
+  },
+  "devDependencies": {
+    "@marp-team/marp-cli": "^4"
+  }
+}

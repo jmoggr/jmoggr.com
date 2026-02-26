@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 1 - Game Networking</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        #status { padding: 1rem; border-radius: 4px; margin: 1rem 0; }
+        #status.connected { background: #d4edda; color: #155724; }
+        #status.disconnected { background: #f8d7da; color: #721c24; }
+        #messages { border: 1px solid #ccc; padding: 1rem; height: 200px; overflow-y: auto; margin: 1rem 0; }
+        button { padding: 0.5rem 1rem; margin-right: 0.5rem; }
+    </style>
+</head>
+<body>
+    <h1>Demo 1</h1>
+    <p>A placeholder demo for game networking concepts.</p>
+
+    <div id="status" class="disconnected">Disconnected</div>
+
+    <div>
+        <button id="connect">Connect</button>
+        <button id="send">Send Message</button>
+    </div>
+
+    <div id="messages"></div>
+
+    <p><strong>To run:</strong> Start the server with <code>bun server.ts</code>, then click Connect.</p>
+
+    <script src="client.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+node_modules
+.claude
+.vite
+dist
+.env
+*.db
+result
+target
+.cargo
+
+.tmp
