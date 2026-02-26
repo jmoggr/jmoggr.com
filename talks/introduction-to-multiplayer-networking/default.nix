@@ -62,7 +62,7 @@ pkgs.stdenv.mkDerivation {
   buildPhase = ''
     # Build demo client.js files with bun
     for demo in demo1 demo2 demo3; do
-      bun build demos/$demo/client.ts --outfile demos/$demo/client.js --format=iife
+      bun build demos/$demo/client/index.ts --outfile demos/$demo/client.js --format=iife
     done
   '';
 
