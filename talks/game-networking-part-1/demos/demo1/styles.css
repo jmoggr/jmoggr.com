@@ -1,0 +1,135 @@
+body {
+    font-family: system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+}
+
+.game-container {
+    display: flex;
+    gap: 2rem;
+}
+
+.main-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.name-input {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.name-input input {
+    padding: 0.25rem 0.5rem;
+}
+
+.name-input button {
+    padding: 0.25rem 0.5rem;
+}
+
+.grid {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ccc;
+}
+
+.row {
+    display: flex;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.palette {
+    display: flex;
+    margin-top: 1rem;
+    gap: 4px;
+}
+
+.color {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #ccc;
+    cursor: pointer;
+}
+
+.color.selected {
+    border-color: #333;
+    outline: 2px solid #333;
+}
+
+.controls {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.controls label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.scoreboard {
+    min-width: 150px;
+    border: 1px solid #ccc;
+    padding: 1rem;
+}
+
+.scoreboard h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+}
+
+.score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+}
+
+.score-row.current-player {
+    font-weight: bold;
+}
+
+.player-name {
+    text-align: left;
+}
+
+.player-score {
+    text-align: right;
+}
+
+.no-scores {
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.sync-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.sync-status.synced {
+    background: #d4edda;
+    color: #155724;
+}
+
+.sync-status.desynced {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.pending-count {
+    font-size: 0.875rem;
+    color: #666;
+}

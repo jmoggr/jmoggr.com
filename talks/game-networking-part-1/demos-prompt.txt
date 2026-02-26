@@ -1,0 +1,63 @@
+I am working on a presentation about multiplayer game networking, for that presentation I would
+like to prepare 3 demos, each demo is meant to have it's own source code and be isolated but have
+the same interface and gameplay as the other demos. The goal is to have a common base from which
+to demonstrate different mechanisms for synchornising browser clients. The demos are located in
+/repos/jmoggr/talks/game-networking-part-1/demos and we have some stub code for each which should be
+replaced. We will use bun for running the server and for compiling ts to js for the client, the client
+will just be an html file that loads the js. the client and the server will communicate over websocket.
+Any commands for building .js for the client should be run in the directory for that demo, ideally
+we would have a separate .ts file for just the networking stuff and another for just the interface
+stuff. for the interface I would like to use lit html as a script like import {html, render} from
+'https://esm.run/lit-html@1';. DO NOT USE NPM. The render function should be pure, taking in a game state
+object and rendering it.
+
+The "game" is meant to be very simple, a grid of squares
+that the user can click on to set the color a color palette that the user can select colors from, colors
+in the color pallet can be selected by clicking on them and whatever color is selected shoudl be used to
+color a square in the grid when the user clicks on it. The color palette should appear below the grid
+square and be horizontally centered on it. keep the styling to an absolute minimum, only what is
+necessary for layout and basic functionality, use a .css file that is included in the html
+
+bun should be used to server the client files. All demos should use port 8080
+
+the command object/type should be the same across all the demos, even if a demo doesn't use a specific
+field. All commands should have an id field which is genreated on creation using a random number, all
+commands should have a version field that is set when it is applied by the server and before being
+broadcast. all commands should have a timestamp field which is a string and set when it is created. All
+commands should have a stateHash field that is set by the server, the server calculates a hash of the
+game state.
+
+All of the demos should have a set name command which take a name from a field above the grid. users
+should be created on connection and given id (random number) and a name ("user-" followed by part of
+their id). Each grid should track the last player who set it's value and the game should keep a scorecard
+of the player who has set the most tiles. The scoreboard should be shown in the client on the right with
+the user name left justified and the score right justfied. The scoreboard should be ordered from highest
+to lowest score.
+
+the first demo should have the server return a full state snapshot for every command
+the client sends, and it should broadcast to all connected clients and the client should not update until
+it receives the state snapshot.
+
+for the second demo I would like to have the client send commands to the
+server, and the client to optimistically update the with the command. commands should be broadcast to
+all the other clients which should apply them in whatever order they receive them (this is meant to
+demonstrate a problem with synchronization). The code for applying the commands to the game state should
+be shared between the client and the server. The server should not broadcast to the client commands that
+that client sent to the server.
+
+
+for the third demo I would like the code that updates the game state to be shared between the client
+and the server. The server should add an authoritative version number to each command received from the
+client, and broadcast it to all connected clients. clients should optimistically apply commands, but
+re-write their event history when new events arrive. The optimistically applied commands should always be
+applied on top of the the authoritiative commands, so we only keep a snapshot of the game state up to the
+last authoritiative command, then we re-apply optimistic commands on top of that whenever a new command
+is received. when the "official" command for an optimistic command is received (by matching on it's id)
+we drop the optimistic command.
+
+We should add visual indicator for latency, with a slider to increase latency on each client the max
+latency should be 3 seconds.
+
+for the second two demos the client should generate a hash of it's game state to compare with the game
+state hash from the server, and there should be a visual indication if the client is in sync or has
+deviated.
