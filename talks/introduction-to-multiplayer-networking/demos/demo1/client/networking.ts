@@ -18,7 +18,7 @@ export function setLatency(ms: number): void {
 function getWebSocketUrl(): string {
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') {
-        return 'ws://localhost:8080/ws';
+        return 'ws://localhost:8085/ws';
     }
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${protocol}//${window.location.host}/ws`;

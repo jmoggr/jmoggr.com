@@ -28,7 +28,7 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 const server = Bun.serve({
-    port: 8080,
+    port: 8085,
     async fetch(req, server) {
         const url = new URL(req.url);
 
