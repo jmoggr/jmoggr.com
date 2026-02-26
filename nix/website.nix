@@ -41,7 +41,7 @@ let
       cp -r target/site/* $out/site/
 
       # Copy talks into the package
-      cp -r ${talks.game-networking-part-1} $out/talks/game-networking-part-1
+      cp -r ${talks.introduction-to-multiplayer-networking} $out/talks/introduction-to-multiplayer-networking
     '';
 
     doCheck = false;
@@ -103,7 +103,7 @@ let
         --no-host-directories \
         --tries=3 \
         --timeout=10 \
-        "http://$ADDR/talks/game-networking-part-1/" || true
+        "http://$ADDR/talks/introduction-to-multiplayer-networking/" || true
 
       # Stop the server
       kill $SERVER_PID 2>/dev/null || true

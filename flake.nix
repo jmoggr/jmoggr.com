@@ -56,7 +56,7 @@
 
       # Talks
       talks = {
-        game-networking-part-1 = import ./talks/game-networking-part-1 { inherit pkgs; };
+        introduction-to-multiplayer-networking = import ./talks/introduction-to-multiplayer-networking { inherit pkgs; };
       };
 
       # Website (server, static site, preview)
@@ -87,7 +87,7 @@
         default = website.static;
         static = website.static;
         preview = website.preview;
-        talks-game-networking-part-1 = talks.game-networking-part-1;
+        talks-introduction-to-multiplayer-networking = talks.introduction-to-multiplayer-networking;
       };
 
       devShells.${system}.default = pkgs.mkShell {

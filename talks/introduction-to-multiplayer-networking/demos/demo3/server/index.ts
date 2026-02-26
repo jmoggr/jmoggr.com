@@ -1,40 +1,21 @@
-import type { GameState, Command, ServerMessage, Player, Cell } from './types';
-import { GRID_SIZE, hashState } from './types';
+import type { Command, ServerMessage, StateMessage, Player } from '../shared/types';
+import { hashState } from '../shared/types';
+import { createInitialState, applyCommand } from '../shared/game';
 
-function createInitialState(): GameState {
-    const grid: Cell[][] = [];
-    for (let y = 0; y < GRID_SIZE; y++) {
-        grid[y] = [];
-        for (let x = 0; x < GRID_SIZE; x++) {
-            grid[y][x] = { color: '#ffffff', playerId: null };
-        }
-    }
-    return { grid, gridSize: GRID_SIZE, players: {} };
-}
-
-function applyCommand(state: GameState, command: Command): void {
-    if (command.type === 'setColor') {
-        state.grid[command.y][command.x] = { color: command.color, playerId: command.playerId };
-    } else if (command.type === 'setName') {
-        if (state.players[command.playerId]) {
-            state.players[command.playerId].name = command.name;
-        }
-    }
-}
+const gameState = createInitialState();
+const clients = new Map<any, Player>();
+let version = 0;
 
 function createPlayer(): Player {
     const id = Math.floor(Math.random() * 1000000000);
     return { id, name: `user-${id.toString().slice(0, 4)}` };
 }
 
-const gameState = createInitialState();
-const clients = new Map<any, Player>();
-let version = 0;
-
-function broadcastState(): void {
-    for (const [client, player] of clients) {
-        const message: ServerMessage = { type: 'state', state: gameState, playerId: player.id };
-        client.send(JSON.stringify(message));
+function broadcastCommand(command: Command): void {
+    const message: ServerMessage = { type: 'command', command };
+    const json = JSON.stringify(message);
+    for (const [client] of clients) {
+        client.send(json);
     }
 }
 
@@ -60,7 +41,7 @@ const server = Bun.serve({
         const ext = path.substring(path.lastIndexOf('.'));
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-        const file = Bun.file(import.meta.dir + path);
+        const file = Bun.file(import.meta.dir + '/..' + path);
         if (await file.exists()) {
             return new Response(file, { headers: { 'Content-Type': contentType } });
         }
@@ -72,17 +53,19 @@ const server = Bun.serve({
             const player = createPlayer();
             clients.set(ws, player);
             gameState.players[player.id] = player;
-            const message: ServerMessage = { type: 'state', state: gameState, playerId: player.id };
+            const message: StateMessage = { type: 'state', state: gameState, playerId: player.id };
             ws.send(JSON.stringify(message));
         },
         message(ws, message) {
             try {
                 const command: Command = JSON.parse(message as string);
-                console.log(`Received command:`, command);
+                const player = clients.get(ws);
+                const username = player?.name || 'unknown';
+                console.log(`[${username}] ${command.type}`);
                 command.version = ++version;
                 applyCommand(gameState, command);
                 command.stateHash = hashState(gameState);
-                broadcastState();
+                broadcastCommand(command);
             } catch (e) {
                 console.error('Invalid message:', e);
             }
@@ -98,4 +81,4 @@ const server = Bun.serve({
     },
 });
 
-console.log(`Demo 1 running at http://localhost:${server.port}`);
+console.log(`Demo 3 running at http://localhost:${server.port}`);

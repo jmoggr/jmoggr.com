@@ -45,7 +45,6 @@ demonstrate a problem with synchronization). The code for applying the commands 
 be shared between the client and the server. The server should not broadcast to the client commands that
 that client sent to the server.
 
-
 for the third demo I would like the code that updates the game state to be shared between the client
 and the server. The server should add an authoritative version number to each command received from the
 client, and broadcast it to all connected clients. clients should optimistically apply commands, but
@@ -61,3 +60,9 @@ latency should be 3 seconds.
 for the second two demos the client should generate a hash of it's game state to compare with the game
 state hash from the server, and there should be a visual indication if the client is in sync or has
 deviated.
+
+the client should log each command it sends and receives, each log should have the user name and an
+object with the command. the server should log each command it receives in a similar way, but instead of
+logging out the whole command object it should log just the username and type.
+
+the typescript source code for each demo should be divided into folders: server, client, shared, with the index.html 

@@ -1,6 +1,6 @@
-import type { Command, ServerMessage, StateMessage, Player } from './types';
-import { hashState } from './types';
-import { createInitialState, applyCommand } from './game';
+import type { Command, ServerMessage, StateMessage, Player } from '../shared/types';
+import { hashState } from '../shared/types';
+import { createInitialState, applyCommand } from '../shared/game';
 
 const gameState = createInitialState();
 const clients = new Map<any, Player>();
@@ -43,7 +43,7 @@ const server = Bun.serve({
         const ext = path.substring(path.lastIndexOf('.'));
         const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-        const file = Bun.file(import.meta.dir + path);
+        const file = Bun.file(import.meta.dir + '/..' + path);
         if (await file.exists()) {
             return new Response(file, { headers: { 'Content-Type': contentType } });
         }
@@ -61,7 +61,9 @@ const server = Bun.serve({
         message(ws, message) {
             try {
                 const command: Command = JSON.parse(message as string);
-                console.log(`Received command:`, command);
+                const player = clients.get(ws);
+                const username = player?.name || 'unknown';
+                console.log(`[${username}] ${command.type}`);
                 command.version = ++version;
                 applyCommand(gameState, command);
                 command.stateHash = hashState(gameState);

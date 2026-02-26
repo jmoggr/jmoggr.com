@@ -1,11 +1,10 @@
-import type { GameState, Command } from './types';
-import { COLORS, createCommand, hashState, calculateScores } from './types';
-import { applyCommand } from './game';
-import { connect, sendCommand, setLatency } from './networking';
+import type { GameState, Command } from '../shared/types';
+import { COLORS, createCommand, hashState, calculateScores } from '../shared/types';
+import { applyCommand, cloneState, createInitialState } from '../shared/game';
+import { connect, sendCommand, setLatency, setPlayerName } from './networking';
 
 declare const litHtml: { html: any; render: any };
 
-let gameState: GameState | null = null;
 let selectedColor = COLORS[0];
 let latency = 0;
 let lastServerHash = '';
@@ -13,19 +12,37 @@ let synced = true;
 let playerId = 0;
 let playerName = '';
 
+// Authoritative state (up to last confirmed command)
+let authoritativeState: GameState = createInitialState();
+
+// Optimistic commands (sent but not yet confirmed)
+let optimisticCommands: Command[] = [];
+
+// Current displayed state (authoritative + optimistic)
+let displayState: GameState = createInitialState();
+
+function recomputeDisplayState() {
+    displayState = cloneState(authoritativeState);
+    for (const cmd of optimisticCommands) {
+        applyCommand(displayState, cmd);
+    }
+}
+
 function checkSync() {
-    if (gameState && lastServerHash) {
-        const clientHash = hashState(gameState);
+    if (lastServerHash) {
+        const clientHash = hashState(authoritativeState);
         synced = clientHash === lastServerHash;
     }
 }
 
-function renderGame(state: GameState) {
+function renderGame() {
     const { html, render } = litHtml;
+    const state = displayState;
     const scores = calculateScores(state);
     const currentPlayer = state.players[playerId];
     if (currentPlayer && !playerName) {
         playerName = currentPlayer.name;
+        setPlayerName(playerName);
     }
 
     const template = html`
@@ -35,20 +52,23 @@ function renderGame(state: GameState) {
                     <input type="text" .value=${playerName} placeholder="Your name"
                         @input=${(e: Event) => {
                             playerName = (e.target as HTMLInputElement).value;
+                            setPlayerName(playerName);
                         }}
                         @keyup=${(e: KeyboardEvent) => {
                             if (e.key === 'Enter') {
                                 const command = createCommand('setName', playerId, playerName);
-                                applyCommand(state, command);
-                                renderGame(state);
+                                optimisticCommands.push(command);
+                                recomputeDisplayState();
+                                renderGame();
                                 sendCommand(command);
                             }
                         }}
                     />
                     <button @click=${() => {
                         const command = createCommand('setName', playerId, playerName);
-                        applyCommand(state, command);
-                        renderGame(state);
+                        optimisticCommands.push(command);
+                        recomputeDisplayState();
+                        renderGame();
                         sendCommand(command);
                     }}>Set Name</button>
                 </div>
@@ -61,8 +81,9 @@ function renderGame(state: GameState) {
                                     style="background-color: ${cell.color}"
                                     @click=${() => {
                                         const command = createCommand('setColor', playerId, x, y, selectedColor);
-                                        applyCommand(state, command);
-                                        renderGame(state);
+                                        optimisticCommands.push(command);
+                                        recomputeDisplayState();
+                                        renderGame();
                                         sendCommand(command);
                                     }}
                                 ></div>
@@ -77,7 +98,7 @@ function renderGame(state: GameState) {
                             style="background-color: ${color}"
                             @click=${() => {
                                 selectedColor = color;
-                                renderGame(state);
+                                renderGame();
                             }}
                         ></div>
                     `)}
@@ -89,12 +110,15 @@ function renderGame(state: GameState) {
                             @input=${(e: Event) => {
                                 latency = parseInt((e.target as HTMLInputElement).value);
                                 setLatency(latency);
-                                renderGame(state);
+                                renderGame();
                             }}
                         />
                     </label>
                     <div class="sync-status ${synced ? 'synced' : 'desynced'}">
                         ${synced ? 'In Sync' : 'Desynced'}
+                    </div>
+                    <div class="pending-count">
+                        Pending: ${optimisticCommands.length}
                     </div>
                 </div>
             </div>
@@ -116,19 +140,26 @@ function renderGame(state: GameState) {
 function init() {
     connect(
         (state, id) => {
-            gameState = state;
+            authoritativeState = cloneState(state);
             playerId = id;
+            optimisticCommands = [];
             lastServerHash = hashState(state);
             synced = true;
-            renderGame(gameState);
+            recomputeDisplayState();
+            renderGame();
         },
         (command) => {
-            if (gameState) {
-                applyCommand(gameState, command);
-                lastServerHash = command.stateHash;
-                checkSync();
-                renderGame(gameState);
-            }
+            // Apply to authoritative state
+            applyCommand(authoritativeState, command);
+            lastServerHash = command.stateHash;
+
+            // Remove matching optimistic command by id
+            optimisticCommands = optimisticCommands.filter(cmd => cmd.id !== command.id);
+
+            // Recompute display state
+            recomputeDisplayState();
+            checkSync();
+            renderGame();
         }
     );
 }

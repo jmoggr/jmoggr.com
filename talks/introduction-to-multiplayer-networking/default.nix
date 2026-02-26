@@ -1,7 +1,7 @@
 { pkgs, ... }:
 let
   inherit (pkgs) lib;
-  name = "game-networking-part-1";
+  name = "introduction-to-multiplayer-networking";
 
   # Build slides separately
   slides = pkgs.stdenv.mkDerivation {
@@ -77,6 +77,7 @@ pkgs.stdenv.mkDerivation {
       mkdir -p $out/demos/$demo
       cp demos/$demo/index.html $out/demos/$demo/
       cp demos/$demo/client.js $out/demos/$demo/
+      cp demos/$demo/styles.css $out/demos/$demo/
     done
   '';
 }

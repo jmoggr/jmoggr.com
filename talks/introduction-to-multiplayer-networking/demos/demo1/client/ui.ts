@@ -1,47 +1,21 @@
-import type { GameState, Command } from './types';
-import { COLORS, createCommand, hashState, calculateScores } from './types';
-import { applyCommand, cloneState, createInitialState } from './game';
-import { connect, sendCommand, setLatency } from './networking';
+import type { GameState } from '../shared/types';
+import { COLORS, createCommand, calculateScores } from '../shared/types';
+import { connect, sendCommand, setLatency, setPlayerName } from './networking';
 
 declare const litHtml: { html: any; render: any };
 
 let selectedColor = COLORS[0];
 let latency = 0;
-let lastServerHash = '';
-let synced = true;
 let playerId = 0;
 let playerName = '';
 
-// Authoritative state (up to last confirmed command)
-let authoritativeState: GameState = createInitialState();
-
-// Optimistic commands (sent but not yet confirmed)
-let optimisticCommands: Command[] = [];
-
-// Current displayed state (authoritative + optimistic)
-let displayState: GameState = createInitialState();
-
-function recomputeDisplayState() {
-    displayState = cloneState(authoritativeState);
-    for (const cmd of optimisticCommands) {
-        applyCommand(displayState, cmd);
-    }
-}
-
-function checkSync() {
-    if (lastServerHash) {
-        const clientHash = hashState(authoritativeState);
-        synced = clientHash === lastServerHash;
-    }
-}
-
-function renderGame() {
+function renderGame(state: GameState) {
     const { html, render } = litHtml;
-    const state = displayState;
     const scores = calculateScores(state);
     const currentPlayer = state.players[playerId];
     if (currentPlayer && !playerName) {
         playerName = currentPlayer.name;
+        setPlayerName(playerName);
     }
 
     const template = html`
@@ -51,23 +25,16 @@ function renderGame() {
                     <input type="text" .value=${playerName} placeholder="Your name"
                         @input=${(e: Event) => {
                             playerName = (e.target as HTMLInputElement).value;
+                            setPlayerName(playerName);
                         }}
                         @keyup=${(e: KeyboardEvent) => {
                             if (e.key === 'Enter') {
-                                const command = createCommand('setName', playerId, playerName);
-                                optimisticCommands.push(command);
-                                recomputeDisplayState();
-                                renderGame();
-                                sendCommand(command);
+                                sendCommand(createCommand('setName', playerId, playerName));
                             }
                         }}
                     />
                     <button @click=${() => {
-                        const command = createCommand('setName', playerId, playerName);
-                        optimisticCommands.push(command);
-                        recomputeDisplayState();
-                        renderGame();
-                        sendCommand(command);
+                        sendCommand(createCommand('setName', playerId, playerName));
                     }}>Set Name</button>
                 </div>
                 <div class="grid">
@@ -78,11 +45,7 @@ function renderGame() {
                                     class="cell"
                                     style="background-color: ${cell.color}"
                                     @click=${() => {
-                                        const command = createCommand('setColor', playerId, x, y, selectedColor);
-                                        optimisticCommands.push(command);
-                                        recomputeDisplayState();
-                                        renderGame();
-                                        sendCommand(command);
+                                        sendCommand(createCommand('setColor', playerId, x, y, selectedColor));
                                     }}
                                 ></div>
                             `)}
@@ -96,7 +59,7 @@ function renderGame() {
                             style="background-color: ${color}"
                             @click=${() => {
                                 selectedColor = color;
-                                renderGame();
+                                renderGame(state);
                             }}
                         ></div>
                     `)}
@@ -108,16 +71,10 @@ function renderGame() {
                             @input=${(e: Event) => {
                                 latency = parseInt((e.target as HTMLInputElement).value);
                                 setLatency(latency);
-                                renderGame();
+                                renderGame(state);
                             }}
                         />
                     </label>
-                    <div class="sync-status ${synced ? 'synced' : 'desynced'}">
-                        ${synced ? 'In Sync' : 'Desynced'}
-                    </div>
-                    <div class="pending-count">
-                        Pending: ${optimisticCommands.length}
-                    </div>
                 </div>
             </div>
             <div class="scoreboard">
@@ -136,30 +93,10 @@ function renderGame() {
 }
 
 function init() {
-    connect(
-        (state, id) => {
-            authoritativeState = cloneState(state);
-            playerId = id;
-            optimisticCommands = [];
-            lastServerHash = hashState(state);
-            synced = true;
-            recomputeDisplayState();
-            renderGame();
-        },
-        (command) => {
-            // Apply to authoritative state
-            applyCommand(authoritativeState, command);
-            lastServerHash = command.stateHash;
-
-            // Remove matching optimistic command by id
-            optimisticCommands = optimisticCommands.filter(cmd => cmd.id !== command.id);
-
-            // Recompute display state
-            recomputeDisplayState();
-            checkSync();
-            renderGame();
-        }
-    );
+    connect((state, id) => {
+        playerId = id;
+        renderGame(state);
+    });
 }
 
 if ((window as any).litHtml) {

@@ -1,5 +1,5 @@
 {
-  "name": "game-networking-part-1-slides",
+  "name": "introduction-to-multiplayer-networking-slides",
   "private": true,
   "scripts": {
     "build": "marp slides.md -o dist/index.html",

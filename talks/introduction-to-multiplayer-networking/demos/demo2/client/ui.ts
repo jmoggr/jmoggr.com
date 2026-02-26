@@ -1,13 +1,24 @@
-import type { GameState } from './types';
-import { COLORS, createCommand, calculateScores } from './types';
-import { connect, sendCommand, setLatency } from './networking';
+import type { GameState, Command } from '../shared/types';
+import { COLORS, createCommand, hashState, calculateScores } from '../shared/types';
+import { applyCommand } from '../shared/game';
+import { connect, sendCommand, setLatency, setPlayerName } from './networking';
 
 declare const litHtml: { html: any; render: any };
 
+let gameState: GameState | null = null;
 let selectedColor = COLORS[0];
 let latency = 0;
+let lastServerHash = '';
+let synced = true;
 let playerId = 0;
 let playerName = '';
+
+function checkSync() {
+    if (gameState && lastServerHash) {
+        const clientHash = hashState(gameState);
+        synced = clientHash === lastServerHash;
+    }
+}
 
 function renderGame(state: GameState) {
     const { html, render } = litHtml;
@@ -15,6 +26,7 @@ function renderGame(state: GameState) {
     const currentPlayer = state.players[playerId];
     if (currentPlayer && !playerName) {
         playerName = currentPlayer.name;
+        setPlayerName(playerName);
     }
 
     const template = html`
@@ -24,15 +36,22 @@ function renderGame(state: GameState) {
                     <input type="text" .value=${playerName} placeholder="Your name"
                         @input=${(e: Event) => {
                             playerName = (e.target as HTMLInputElement).value;
+                            setPlayerName(playerName);
                         }}
                         @keyup=${(e: KeyboardEvent) => {
                             if (e.key === 'Enter') {
-                                sendCommand(createCommand('setName', playerId, playerName));
+                                const command = createCommand('setName', playerId, playerName);
+                                applyCommand(state, command);
+                                renderGame(state);
+                                sendCommand(command);
                             }
                         }}
                     />
                     <button @click=${() => {
-                        sendCommand(createCommand('setName', playerId, playerName));
+                        const command = createCommand('setName', playerId, playerName);
+                        applyCommand(state, command);
+                        renderGame(state);
+                        sendCommand(command);
                     }}>Set Name</button>
                 </div>
                 <div class="grid">
@@ -43,7 +62,10 @@ function renderGame(state: GameState) {
                                     class="cell"
                                     style="background-color: ${cell.color}"
                                     @click=${() => {
-                                        sendCommand(createCommand('setColor', playerId, x, y, selectedColor));
+                                        const command = createCommand('setColor', playerId, x, y, selectedColor);
+                                        applyCommand(state, command);
+                                        renderGame(state);
+                                        sendCommand(command);
                                     }}
                                 ></div>
                             `)}
@@ -73,6 +95,9 @@ function renderGame(state: GameState) {
                             }}
                         />
                     </label>
+                    <div class="sync-status ${synced ? 'synced' : 'desynced'}">
+                        ${synced ? 'In Sync' : 'Desynced'}
+                    </div>
                 </div>
             </div>
             <div class="scoreboard">
@@ -91,10 +116,23 @@ function renderGame(state: GameState) {
 }
 
 function init() {
-    connect((state, id) => {
-        playerId = id;
-        renderGame(state);
-    });
+    connect(
+        (state, id) => {
+            gameState = state;
+            playerId = id;
+            lastServerHash = hashState(state);
+            synced = true;
+            renderGame(gameState);
+        },
+        (command) => {
+            if (gameState) {
+                applyCommand(gameState, command);
+                lastServerHash = command.stateHash;
+                checkSync();
+                renderGame(gameState);
+            }
+        }
+    );
 }
 
 if ((window as any).litHtml) {
